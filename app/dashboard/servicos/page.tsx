@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSupabase } from '@/app/hooks/useSupabase'
 import { useForm } from '@/app/hooks/useForm'
 import { Button } from '@/app/components/Button'
@@ -39,14 +39,16 @@ export default function ServicosPage() {
     categoria: ''
   })
 
-  useEffect(() => {
-    loadServicos()
-  }, [])
-
-  const loadServicos = async () => {
+  const loadServicos = useCallback(async () => {
     const data = await fetchData('servicos', { empresa_id: DEMO_EMPRESA_ID })
-    if (data) setServicos(data)
-  }
+    if (data) setServicos(data as Servico[])
+  }, [fetchData])
+
+  useEffect(() => {
+    // Initial async data load; state updates happen after the Supabase request.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadServicos()
+  }, [loadServicos])
 
   const validateForm = () => {
     const errors: Record<string, string> = {}
@@ -134,26 +136,26 @@ export default function ServicosPage() {
     {
       key: 'preco',
       label: 'Preço',
-      render: (value: number) => (
+      render: (value: unknown) => (
         <span style={{ color: '#00e5a0', fontWeight: 600 }}>
-          {formatPreco(value)}
+          {formatPreco(Number(value) || 0)}
         </span>
       )
     },
     {
       key: 'duracao_min',
       label: 'Duração',
-      render: (value: number) => formatDuracao(value)
+      render: (value: unknown) => formatDuracao(Number(value) || 0)
     },
     {
       key: 'categoria',
       label: 'Categoria',
-      render: (value: string) => value || '-'
+      render: (value: unknown) => typeof value === 'string' && value ? value : '-'
     },
     {
       key: 'criado_em',
       label: 'Criado em',
-      render: (value: string) => new Date(value).toLocaleDateString('pt-BR')
+      render: (value: unknown) => value ? new Date(String(value)).toLocaleDateString('pt-BR') : '-'
     }
   ]
 
