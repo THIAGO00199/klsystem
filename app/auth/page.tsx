@@ -53,8 +53,8 @@ export default function AuthPage() {
       alert('Cadastro realizado! Faça login agora.')
       setFormData({ email: '', password: '', empresaNome: '', empresaSegmento: '' })
       setIsLogin(true)
-    } catch (err: any) {
-      setError(err.message || 'Erro ao cadastrar')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao cadastrar')
     } finally {
       setLoading(false)
     }
@@ -72,8 +72,8 @@ export default function AuthPage() {
       if (error) throw error
       await new Promise(resolve => setTimeout(resolve, 500))
       router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message || 'Erro ao fazer login')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login')
     } finally {
       setLoading(false)
     }

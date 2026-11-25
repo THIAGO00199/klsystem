@@ -18,7 +18,7 @@ export function useSupabase() {
    * @returns Array de dados ou null se erro
    */
   const fetchData = useCallback(
-    async (table: string, filters?: Record<string, any>) => {
+    async (table: string, filters?: Record<string, unknown>) => {
       setLoading(true)
       setError(null)
 
@@ -28,7 +28,7 @@ export function useSupabase() {
         // Aplica filtros se existirem
         if (filters) {
           Object.entries(filters).forEach(([key, value]) => {
-            query = query.eq(key, value)
+            query = query.eq(key, value as never)
           })
         }
 
@@ -36,8 +36,8 @@ export function useSupabase() {
 
         if (err) throw err
         return data
-      } catch (err: any) {
-        const message = err.message || 'Erro ao buscar dados'
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Erro ao buscar dados'
         setError(message)
         console.error(message, err)
         return null
@@ -55,20 +55,20 @@ export function useSupabase() {
    * @returns Dados inseridos ou null se erro
    */
   const insertData = useCallback(
-    async (table: string, data: Record<string, any>) => {
+    async (table: string, data: Record<string, unknown>) => {
       setLoading(true)
       setError(null)
 
       try {
         const { data: result, error: err } = await supabase
           .from(table)
-          .insert([data])
+          .insert([data as never])
           .select()
 
         if (err) throw err
         return result?.[0] || null
-      } catch (err: any) {
-        const message = err.message || 'Erro ao criar registro'
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Erro ao criar registro'
         setError(message)
         console.error(message, err)
         return null
@@ -87,20 +87,20 @@ export function useSupabase() {
    * @returns true se sucesso, false se erro
    */
   const updateData = useCallback(
-    async (table: string, id: string, data: Record<string, any>) => {
+    async (table: string, id: string, data: Record<string, unknown>) => {
       setLoading(true)
       setError(null)
 
       try {
         const { error: err } = await supabase
           .from(table)
-          .update(data)
+          .update(data as never)
           .eq('id', id)
 
         if (err) throw err
         return true
-      } catch (err: any) {
-        const message = err.message || 'Erro ao atualizar registro'
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Erro ao atualizar registro'
         setError(message)
         console.error(message, err)
         return false
@@ -130,8 +130,8 @@ export function useSupabase() {
 
         if (err) throw err
         return true
-      } catch (err: any) {
-        const message = err.message || 'Erro ao deletar registro'
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Erro ao deletar registro'
         setError(message)
         console.error(message, err)
         return false

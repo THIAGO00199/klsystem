@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
@@ -28,6 +28,18 @@ interface Horario {
   hora_inicio: string
   hora_fim: string
   intervalo_min: number
+}
+
+interface Empresa {
+  id: string
+  nome: string
+  telefone?: string | null
+}
+
+interface Visual {
+  cor_primaria?: string | null
+  cor_fundo?: string | null
+  texto_boas_vindas?: string | null
 }
 
 function gerarHorarios(horarios: Horario[], data: string, duracaoMin: number): string[] {
@@ -87,13 +99,12 @@ export default function AgendarPage() {
   const slug = params.slug as string
 
   const [step, setStep] = useState(1)
-  const [empresa, setEmpresa] = useState<any>(null)
-  const [visual, setVisual] = useState<any>(null)
+  const [empresa, setEmpresa] = useState<Empresa | null>(null)
+  const [visual, setVisual] = useState<Visual | null>(null)
   const [servicos, setServicos] = useState<Servico[]>([])
   const [profissionais, setProfissionais] = useState<Profissional[]>([])
   const [horarios, setHorarios] = useState<Horario[]>([])
   const [diasDisponiveis, setDiasDisponiveis] = useState<string[]>([])
-  const [horariosDisponiveis, setHorariosDisponiveis] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [concluido, setConcluido] = useState(false)
@@ -105,40 +116,97 @@ export default function AgendarPage() {
   const [nome, setNome] = useState('')
   const [telefone, setTelefone] = useState('')
 
-  useEffect(() => { carregarDados() }, [slug])
-  useEffect(() => { if (profId) carregarHorariosProfissional() }, [profId])
-  useEffect(() => {
-    if (data && horarios.length > 0) {
-      const servico = servicos.find(s => s.id === servicoId)
-      const duracao = servico?.duracao_min || 60
-      setHorariosDisponiveis(gerarHorarios(horarios, data, duracao))
-      setHora('')
-    }
-  }, [data, horarios])
-
-  const carregarDados = async () => {
+  const carregarDados = useCallback(async () => {
     setLoading(true)
-    const { data: emp } = await supabase.from('empresas').select('*').eq('slug', slug).single()
-    if (!emp) { router.push('/'); return }
-    setEmpresa(emp)
-    const { data: vis } = await supabase.from('personalizacao').select('*').eq('empresa_id', emp.id).single()
-    setVisual(vis)
-    const { data: servs } = await supabase.from('servicos').select('*').eq('empresa_id', emp.id).eq('ativo', true)
-    setServicos(servs || [])
-    const { data: profs } = await supabase.from('profissionais').select('*').eq('empresa_id', emp.id).eq('ativo', true).order('ordem')
-    setProfissionais(profs || [])
-    setLoading(false)
-  }
+    try {
+      const { data: emp, error: empresaError } = await supabase
+        .from('empresas')
+        .select('*')
+        .eq('slug', slug)
+        .single()
 
-  const carregarHorariosProfissional = async () => {
-    const { data: hors } = await supabase.from('horarios').select('*').eq('profissional_id', profId).eq('ativo', true)
-    if (hors) {
-      setHorarios(hors)
-      setDiasDisponiveis(proximosDias(hors))
+      if (empresaError || !emp) {
+        router.push('/')
+        return
+      }
+
+      const empresaAtual = emp as Empresa
+      setEmpresa(empresaAtual)
+
+      const { data: vis } = await supabase
+        .from('personalizacao')
+        .select('*')
+        .eq('empresa_id', empresaAtual.id)
+        .single()
+      setVisual((vis as Visual | null) ?? null)
+
+      const { data: servs } = await supabase
+        .from('servicos')
+        .select('*')
+        .eq('empresa_id', empresaAtual.id)
+        .eq('ativo', true)
+      setServicos((servs as Servico[] | null) ?? [])
+
+      const { data: profs } = await supabase
+        .from('profissionais')
+        .select('*')
+        .eq('empresa_id', empresaAtual.id)
+        .eq('ativo', true)
+        .order('ordem')
+      setProfissionais((profs as Profissional[] | null) ?? [])
+    } catch (error) {
+      console.error('Erro ao carregar dados do agendamento:', error)
+      router.push('/')
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [router, slug])
+
+  const carregarHorariosProfissional = useCallback(async () => {
+    if (!profId) {
+      setHorarios([])
+      setDiasDisponiveis([])
+      return
+    }
+
+    const { data: hors, error } = await supabase
+      .from('horarios')
+      .select('*')
+      .eq('profissional_id', profId)
+      .eq('ativo', true)
+
+    if (error) {
+      console.error('Erro ao carregar horários:', error)
+      setHorarios([])
+      setDiasDisponiveis([])
+      return
+    }
+
+    const lista = (hors as Horario[] | null) ?? []
+    setHorarios(lista)
+    setDiasDisponiveis(proximosDias(lista))
+  }, [profId])
+
+  useEffect(() => {
+    // Async route data loading; state updates occur after the Supabase responses.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregarDados()
+  }, [carregarDados])
+
+  useEffect(() => {
+    // Async availability loading after the selected professional changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregarHorariosProfissional()
+  }, [carregarHorariosProfissional])
+
+  const servicoSelecionado = servicos.find(s => s.id === servicoId)
+  const horariosDisponiveis = useMemo(() => {
+    if (!data) return []
+    return gerarHorarios(horarios, data, servicoSelecionado?.duracao_min || 60)
+  }, [data, horarios, servicoSelecionado])
 
   const handleConfirmar = async () => {
+    if (!empresa) return
     if (!nome.trim() || !telefone.trim()) { alert('Preencha seu nome e telefone!'); return }
     setSalvando(true)
     let clienteId = ''
@@ -163,7 +231,6 @@ export default function AgendarPage() {
     setConcluido(true)
   }
 
-  const servicoSelecionado = servicos.find(s => s.id === servicoId)
   const profSelecionado = profissionais.find(p => p.id === profId)
   const cor = visual?.cor_primaria || '#00e5a0'
   const fundo = visual?.cor_fundo || '#0a0a0f'
@@ -262,7 +329,7 @@ export default function AgendarPage() {
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 20 }}>O que você quer fazer?</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {servicos.map(s => (
-                <div key={s.id} onClick={() => setServicoId(s.id)} style={servicoId === s.id ? cardSelectedStyle : cardStyle}>
+                <div key={s.id} onClick={() => { setServicoId(s.id); setData(''); setHora('') }} style={servicoId === s.id ? cardSelectedStyle : cardStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <p style={{ fontWeight: 600, margin: 0 }}>{s.nome}</p>
@@ -285,7 +352,7 @@ export default function AgendarPage() {
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 20 }}>Com quem você quer ser atendido?</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {profissionais.map(p => (
-                <div key={p.id} onClick={() => setProfId(p.id)} style={{ ...(profId === p.id ? cardSelectedStyle : cardStyle), display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div key={p.id} onClick={() => { setProfId(p.id); setData(''); setHora('') }} style={{ ...(profId === p.id ? cardSelectedStyle : cardStyle), display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, background: `${cor}20`, border: `2px solid ${cor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, overflow: 'hidden' }}>
                     {p.foto_url ? <img src={p.foto_url} alt={p.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.nome.charAt(0)}
                   </div>
@@ -313,7 +380,7 @@ export default function AgendarPage() {
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Data</p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
                   {diasDisponiveis.slice(0, 14).map(d => (
-                    <button key={d} onClick={() => setData(d)} style={{ padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, background: data === d ? cor : 'rgba(255,255,255,0.07)', color: data === d ? '#000' : '#fff' }}>
+                    <button key={d} onClick={() => { setData(d); setHora('') }} style={{ padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, background: data === d ? cor : 'rgba(255,255,255,0.07)', color: data === d ? '#000' : '#fff' }}>
                       {formatData(d)}
                     </button>
                   ))}

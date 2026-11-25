@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useSupabase } from '@/app/hooks/useSupabase'
 import { Button } from '@/app/components/Button'
 import { Modal } from '@/app/components/Modal'
@@ -49,26 +50,35 @@ export default function HorariosPage() {
 
   const { loading, fetchData, insertData, updateData, deleteData } = useSupabase()
 
-  useEffect(() => {
-    loadProfissionais()
-  }, [])
-
-  useEffect(() => {
-    if (profSelecionado) loadHorarios()
-  }, [profSelecionado])
-
-  const loadProfissionais = async () => {
+  const loadProfissionais = useCallback(async () => {
     const data = await fetchData('profissionais', { empresa_id: DEMO_EMPRESA_ID })
     if (data && data.length > 0) {
-      setProfissionais(data)
-      setProfSelecionado(data[0].id)
+      const lista = data as Profissional[]
+      setProfissionais(lista)
+      setProfSelecionado(lista[0].id)
     }
-  }
+  }, [fetchData])
 
-  const loadHorarios = async () => {
+  const loadHorarios = useCallback(async () => {
+    if (!profSelecionado) {
+      setHorarios([])
+      return
+    }
     const data = await fetchData('horarios', { profissional_id: profSelecionado })
-    if (data) setHorarios(data)
-  }
+    if (data) setHorarios(data as Horario[])
+  }, [fetchData, profSelecionado])
+
+  useEffect(() => {
+    // Initial async data load; state changes occur after the database request.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadProfissionais()
+  }, [loadProfissionais])
+
+  useEffect(() => {
+    // Async data load after the selected professional changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadHorarios()
+  }, [loadHorarios])
 
   // Pega horário de um dia específico
   const getHorarioDia = (dia: number) =>
@@ -132,9 +142,9 @@ export default function HorariosPage() {
         <Card variant="accent">
           <p className="text-slate-300 text-center py-4">
             Nenhum profissional cadastrado ainda.{' '}
-            <a href="/dashboard/profissionais" className="text-emerald-400 underline">
+            <Link href="/dashboard/profissionais" className="text-emerald-400 underline">
               Cadastre um profissional primeiro.
-            </a>
+            </Link>
           </p>
         </Card>
       )}

@@ -2,44 +2,30 @@
 
 import React from 'react'
 
-/**
- * Componente Table reutilizável
- * Renderiza tabelas com dados dinâmicos
- */
-
-interface Column {
-  // Chave dos dados
+type Column<Row extends object> = {
   key: string
-  // Label da coluna
   label: string
-  // Função customizada pra renderizar a célula
-  render?: (value: any, row: any) => React.ReactNode
+  render?: (value: unknown, row: Row) => React.ReactNode
 }
 
-interface TableProps {
-  // Colunas da tabela
-  columns: Column[]
-  // Dados (array de objetos)
-  data: any[]
-  // Função ao clicar em uma linha
-  onRowClick?: (row: any) => void
-  // Se está carregando
+type TableProps<Row extends object> = {
+  columns: Column<Row>[]
+  data: Row[]
+  onRowClick?: (row: Row) => void
   isLoading?: boolean
-  // Ações (ex: editar, deletar)
   actions?: {
-    onEdit?: (row: any) => void
-    onDelete?: (row: any) => void
+    onEdit?: (row: Row) => void
+    onDelete?: (row: Row) => void
   }
 }
 
-export function Table({
+export function Table<Row extends object>({
   columns,
   data,
   onRowClick,
-  isLoading,
-  actions
-}: TableProps) {
-  // Se não tem dados e não está carregando
+  isLoading = false,
+  actions,
+}: TableProps<Row>) {
   if (!isLoading && data.length === 0) {
     return (
       <div className="text-center py-12 text-slate-400">
@@ -51,15 +37,14 @@ export function Table({
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
-        {/* Header */}
         <thead>
           <tr className="border-b border-slate-700">
-            {columns.map((col) => (
+            {columns.map((column) => (
               <th
-                key={col.key}
+                key={column.key}
                 className="text-left px-6 py-3 text-sm font-semibold text-slate-300"
               >
-                {col.label}
+                {column.label}
               </th>
             ))}
             {(actions?.onEdit || actions?.onDelete) && (
@@ -69,37 +54,36 @@ export function Table({
             )}
           </tr>
         </thead>
-
-        {/* Body */}
         <tbody>
           {isLoading ? (
             <tr>
               <td colSpan={columns.length + 1} className="text-center py-8">
-                <span className="animate-spin">⚙️</span>
+                <span className="animate-spin" aria-label="Carregando">⚙️</span>
               </td>
             </tr>
           ) : (
-            data.map((row, idx) => (
+            data.map((row, index) => (
               <tr
-                key={idx}
+                key={index}
                 className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
                 onClick={() => onRowClick?.(row)}
               >
-                {columns.map((col) => (
-                  <td key={col.key} className="px-6 py-4 text-slate-300">
-                    {col.render
-                      ? col.render(row[col.key], row)
-                      : row[col.key] || '-'}
-                  </td>
-                ))}
-
-                {/* Coluna de ações */}
+                {columns.map((column) => {
+                  const value = (row as Record<string, unknown>)[column.key]
+                  const fallback =
+                    value == null || value === false ? '-' : String(value)
+                  return (
+                    <td key={column.key} className="px-6 py-4 text-slate-300">
+                      {column.render ? column.render(value, row) : fallback}
+                    </td>
+                  )
+                })}
                 {(actions?.onEdit || actions?.onDelete) && (
                   <td className="px-6 py-4 flex gap-2">
                     {actions?.onEdit && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
+                        onClick={(event) => {
+                          event.stopPropagation()
                           actions.onEdit?.(row)
                         }}
                         className="text-emerald-400 hover:text-emerald-300 transition-colors"
@@ -109,8 +93,8 @@ export function Table({
                     )}
                     {actions?.onDelete && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
+                        onClick={(event) => {
+                          event.stopPropagation()
                           if (confirm('Tem certeza que quer deletar?')) {
                             actions.onDelete?.(row)
                           }

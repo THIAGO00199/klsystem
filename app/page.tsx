@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 export default function LandingPage() {
   return (
     <div style={{ background: '#0a0a0f', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
@@ -7,7 +9,7 @@ export default function LandingPage() {
         <div style={{ fontSize: 20, fontWeight: 700, background: 'linear-gradient(135deg, #00e5a0, #5b8dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>KL System</div>
         <div style={{ display: 'flex', gap: 24 }}>
           <a href="#planos" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Planos</a>
-          <a href="/auth" style={{ padding: '8px 20px', background: '#00e5a0', color: '#000', borderRadius: 8, fontWeight: 600, textDecoration: 'none' }}>Entrar</a>
+          <Link href="/auth" style={{ padding: '8px 20px', background: '#00e5a0', color: '#000', borderRadius: 8, fontWeight: 600, textDecoration: 'none' }}>Entrar</Link>
         </div>
       </nav>
 
@@ -19,8 +21,8 @@ export default function LandingPage() {
           Barbearias, clínicas, salões. Customizável. Automático. Profissional.
         </p>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-          <a href="/auth" style={{ padding: '16px 48px', background: '#00e5a0', color: '#000', fontWeight: 700, fontSize: 17, borderRadius: 12, textDecoration: 'none' }}>Começar Grátis →</a>
-          <a href="/barbearia-demo" style={{ padding: '16px 48px', background: 'rgba(255,255,255,0.08)', color: '#fff', fontWeight: 700, fontSize: 17, borderRadius: 12, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.12)' }}>Ver Demo</a>
+          <Link href="/auth" style={{ padding: '16px 48px', background: '#00e5a0', color: '#000', fontWeight: 700, fontSize: 17, borderRadius: 12, textDecoration: 'none' }}>Começar Grátis →</Link>
+          <Link href="/barbearia-demo" style={{ padding: '16px 48px', background: 'rgba(255,255,255,0.08)', color: '#fff', fontWeight: 700, fontSize: 17, borderRadius: 12, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.12)' }}>Ver Demo</Link>
         </div>
       </section>
 
@@ -36,7 +38,7 @@ export default function LandingPage() {
               <li style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: 14 }}>✓ Até 100 agendamentos</li>
               <li style={{ padding: '10px 0', fontSize: 14 }}>✓ Site público</li>
             </ul>
-            <a href="/auth" style={{ display: 'block', padding: '12px 24px', background: 'rgba(255,255,255,0.08)', color: '#fff', fontWeight: 600, borderRadius: 10, textDecoration: 'none', textAlign: 'center' }}>Começar</a>
+            <Link href="/auth" style={{ display: 'block', padding: '12px 24px', background: 'rgba(255,255,255,0.08)', color: '#fff', fontWeight: 600, borderRadius: 10, textDecoration: 'none', textAlign: 'center' }}>Começar</Link>
           </div>
 
           <div style={{ background: 'linear-gradient(135deg, #0a0a0f, rgba(91,141,255,0.05))', border: '1px solid rgba(91,141,255,0.4)', borderRadius: 16, padding: 32, transform: 'scale(1.05)' }}>
@@ -47,7 +49,7 @@ export default function LandingPage() {
               <li style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: 14 }}>✓ Editor DIY</li>
               <li style={{ padding: '10px 0', fontSize: 14 }}>✓ Customizável</li>
             </ul>
-            <a href="/auth" style={{ display: 'block', padding: '12px 24px', background: '#5b8dff', color: '#000', fontWeight: 700, borderRadius: 10, textDecoration: 'none', textAlign: 'center' }}>Começar Agora →</a>
+            <Link href="/auth" style={{ display: 'block', padding: '12px 24px', background: '#5b8dff', color: '#000', fontWeight: 700, borderRadius: 10, textDecoration: 'none', textAlign: 'center' }}>Começar Agora →</Link>
           </div>
 
           <div style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 32 }}>
@@ -58,7 +60,7 @@ export default function LandingPage() {
               <li style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: 14 }}>✓ IA integrada</li>
               <li style={{ padding: '10px 0', fontSize: 14 }}>✓ WhatsApp bot</li>
             </ul>
-            <a href="/auth" style={{ display: 'block', padding: '12px 24px', background: 'rgba(255,255,255,0.08)', color: '#fff', fontWeight: 600, borderRadius: 10, textDecoration: 'none', textAlign: 'center' }}>Começar</a>
+            <Link href="/auth" style={{ display: 'block', padding: '12px 24px', background: 'rgba(255,255,255,0.08)', color: '#fff', fontWeight: 600, borderRadius: 10, textDecoration: 'none', textAlign: 'center' }}>Começar</Link>
           </div>
 
         </div>

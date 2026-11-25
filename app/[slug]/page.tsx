@@ -120,7 +120,7 @@ export default async function EmpresaPage({ params }: Props) {
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {servicos.map((s: any) => (
+              {servicos.map((s) => (
                 <div key={s.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                   <div>
                     <p style={{ fontWeight: 600, fontSize: 15, margin: 0 }}>{s.nome}</p>
@@ -167,7 +167,7 @@ export default async function EmpresaPage({ params }: Props) {
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-              {profissionais.map((p: any) => (
+              {profissionais.map((p) => (
                 <div key={p.id} style={{ ...cardStyle, textAlign: 'center' }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',

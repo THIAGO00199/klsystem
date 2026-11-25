@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 
@@ -15,22 +16,24 @@ export function useAuth() {
   const [empresa, setEmpresa] = useState<Empresa | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    carregarUsuario()
+  const carregarEmpresa = useCallback(async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('empresas')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle()
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        setEmpresa(null)
-        setLoading(false)
-      } else {
-        carregarEmpresa(session.user.email || '')
+      if (error) {
+        console.error('Erro empresa:', error)
       }
-    })
-
-    return () => listener.subscription.unsubscribe()
+      setEmpresa((data as Empresa | null) || null)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const carregarUsuario = async () => {
+  const carregarUsuario = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
@@ -42,22 +45,24 @@ export function useAuth() {
     } catch {
       setLoading(false)
     }
-  }
+  }, [carregarEmpresa])
 
-  const carregarEmpresa = async (email: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('*')
-        .eq('email', email)
-        .maybeSingle()
+  useEffect(() => {
+    // Session bootstrap is async; subsequent updates come from the auth listener.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregarUsuario()
 
-      if (error) console.error('Erro empresa:', error)
-      setEmpresa(data || null)
-    } finally {
-      setLoading(false)
-    }
-  }
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setEmpresa(null)
+        setLoading(false)
+      } else {
+        void carregarEmpresa(session.user.email || '')
+      }
+    })
+
+    return () => listener.subscription.unsubscribe()
+  }, [carregarEmpresa, carregarUsuario])
 
   const logout = async () => {
     await supabase.auth.signOut()

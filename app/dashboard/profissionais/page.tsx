@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSupabase } from '@/app/hooks/useSupabase'
 import { useForm } from '@/app/hooks/useForm'
 import { useAuth } from '@/app/hooks/useAuth'
@@ -35,17 +35,17 @@ export default function ProfissionaisPage() {
     bio: ''
   })
 
-  useEffect(() => {
-    if (empresa?.id) {
-      loadProfissionais()
-    }
-  }, [empresa])
-
-  const loadProfissionais = async () => {
+  const loadProfissionais = useCallback(async () => {
     if (!empresa?.id) return
     const data = await fetchData('profissionais', { empresa_id: empresa.id })
-    if (data) setProfissionais(data)
-  }
+    if (data) setProfissionais(data as Profissional[])
+  }, [empresa, fetchData])
+
+  useEffect(() => {
+    // Legitimate async data loading on company-context changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadProfissionais()
+  }, [loadProfissionais])
 
   const validateForm = () => {
     const errors: Record<string, string> = {}
@@ -132,12 +132,12 @@ export default function ProfissionaisPage() {
     {
       key: 'especialidade',
       label: 'Especialidade',
-      render: (value: string) => value || '-'
+      render: (value: unknown) => typeof value === 'string' && value ? value : '-'
     },
     {
       key: 'criado_em',
       label: 'Criado em',
-      render: (value: string) => new Date(value).toLocaleDateString('pt-BR')
+      render: (value: unknown) => value ? new Date(String(value)).toLocaleDateString('pt-BR') : '-'
     }
   ]
 
