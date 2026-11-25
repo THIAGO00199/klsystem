@@ -1,47 +1,47 @@
-# KL System — Online Scheduling Platform
+# KL System — Plataforma de agendamentos online
 
-A web application prototype for appointment-based businesses such as barbershops, clinics, and salons. The product concept combines a public booking experience with business-side management.
+Protótipo de aplicação web para negócios que trabalham com hora marcada, como barbearias, clínicas e salões. A proposta combina uma experiência pública de agendamento com recursos de gestão para o estabelecimento.
 
-## Current foundation
+## Base atual
 
-- Next.js App Router with React and TypeScript.
-- Supabase client integration for authentication and application data.
-- Public-facing landing page describing the service and subscription tiers.
-- Initial routes for authentication, business pages, service management, professionals, schedules, and appointments.
+- Next.js App Router com React e TypeScript.
+- Integração de cliente com Supabase para autenticação e dados da aplicação.
+- Página inicial pública com apresentação do serviço e planos.
+- Rotas iniciais para autenticação, páginas de estabelecimentos, serviços, profissionais, horários e agendamentos.
 
-## Development
+## Desenvolvimento
 
-Requirements: Node.js compatible with the Next.js version in `package.json` and npm.
+Requisitos: Node.js compatível com a versão do Next.js declarada em `package.json` e npm.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Abra http://localhost:3000.
 
-Run the production build and lint checks with:
+Para compilar e executar as verificações de lint:
 
 ```bash
 npm run build
 npm run lint
 ```
 
-## Configuration
+## Configuração
 
-Create a local `.env.local` file with the Supabase project URL and public anonymous key:
+Crie um arquivo local `.env.local` com a URL do projeto Supabase e a chave anônima pública:
 
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-Do not commit `.env.local`, service-role keys, database credentials, or production data. The repository intentionally excludes local environment files.
+Não envie `.env.local`, chaves service-role, credenciais de banco ou dados de produção ao Git. Os arquivos de ambiente locais são excluídos deste repositório.
 
-## Project status
+## Estado do projeto
 
-This repository is an early product foundation, not a production-ready booking service. Authentication, database policies, tenant isolation, payment handling, booking concurrency, and operational security must be reviewed and tested before real businesses or customer data are onboarded.
+Este repositório é uma base inicial de produto, não um serviço de agendamento pronto para produção. Autenticação, políticas do banco, isolamento entre estabelecimentos, pagamentos, concorrência de agendamentos e segurança operacional precisam ser revisados e testados antes de cadastrar empresas ou dados reais de clientes.
 
 ---
 
-[Português](./README.pt-BR.md) · [English](./README.en.md) · [Español](./README.es.md)
+[Português](./README.md) · [English](./README.en.md) · [Español](./README.es.md)
